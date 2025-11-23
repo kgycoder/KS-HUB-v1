@@ -55,6 +55,13 @@ loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/
 })
 
 local Button = Tab:CreateButton({
+   Name = "FPS SPIN SCRIPT",
+   Callback = function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()
+   end,
+})
+
+local Button = Tab:CreateButton({
    Name = "ESP,AIMBOT",
    Callback = function()
 loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()
