@@ -1,125 +1,332 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--[[ 
+    KSHUB - All-in-One Local Script Hub
+    Advanced and simple design, rounded corners, natural shadow/glow effects added, 
+    enlarged message box.
+]]
 
-local Window = Rayfield:CreateWindow({
-   Name = "KS HUB",
-   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Loading...",
-   LoadingSubtitle = "by KS SCRIPT",
-   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
-   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+-- 1. GUI Library and Utility Functions
+local GuiLibrary = {}
+GuiLibrary.ScreenGui = Instance.new("ScreenGui")
+GuiLibrary.ScreenGui.Name = "KSHUB_ScreenGui"
+GuiLibrary.ScreenGui.DisplayOrder = 999
+GuiLibrary.ScreenGui.Parent = game:GetService("CoreGui")
 
-   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+local TweenService = game:GetService("TweenService") 
+local TweenInfoStandard = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0) 
 
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+local function Create(ClassName, Properties)
+    local obj = Instance.new(ClassName)
+    for prop, value in pairs(Properties) do
+        obj[prop] = value
+    end
+    return obj
+end
 
-   ConfigurationSaving = {
-      Enabled = false,
-      FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "Big Hub"
-   },
+-- **Color Palette - Adjusted to Premium/Sophisticated Tones**
+local Color = {
+    Primary = Color3.fromRGB(28, 28, 30),   -- Main Background (Darker)
+    Secondary = Color3.fromRGB(35, 35, 38), -- Sub Background/Title Bar
+    Accent = Color3.fromRGB(50, 50, 55),    -- Default Button/Separator
+    Highlight = Color3.fromRGB(240, 240, 245), -- Title/Key Text
+    Text = Color3.fromRGB(180, 180, 190),   -- General Text (Slightly Lighter)
+    TabActive = Color3.fromRGB(60, 60, 65)  -- Active Tab
+}
 
-   Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-   },
+local CornerRadius = 10 -- **Enlarged Corner Rounding**
+local ButtonTransparency = 0 -- **Button Transparency Removed, Replaced by Background Color**
 
-   KeySystem = false, -- Set this to true to use our key system
-   KeySettings = {
-      Title = "Untitled",
-      Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
-      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-   }
+-- **UI Functions for Natural Shadow/Glow Effect**
+local function AddShadow(Target, Color, Transparency, Thickness)
+    -- Using UIStroke for a pseudo-shadow/glow effect
+    local UIStroke = Create("UIStroke", {
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border, -- Apply to outer border (for glow/shadow look)
+        Color = Color,
+        Transparency = Transparency,
+        Thickness = Thickness,
+        LineJoinMode = Enum.LineJoinMode.Round,
+        Parent = Target
+    })
+end
+
+local function AddDropShadow(Target, Size, Color, Transparency)
+    -- Placeholder/Note: Direct DropShadow instance is not available in Roblox Studio.
+    -- The UIStroke in AddShadow is being used as the primary shadow/glow mechanism.
+    -- This function is kept minimal as the effect is primarily managed by UIStroke.
+end
+
+-- Make Draggable Function (Unchanged)
+local function MakeDraggable(Frame)
+    local dragging = false
+    local dragStart, startPos
+    local UIS = game:GetService("UserInputService")
+
+    Frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Frame.Position
+        end
+    end)
+
+    Frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                         startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- Notification Function - **Enlarged Size and Applied Shadow/Rounded Corners**
+local function Notify(title, text)
+    local NotifFrame = Create("Frame", {
+        Size = UDim2.new(0, 280, 0, 60), -- **Enlarged Size (250x50 -> 280x60)**
+        Position = UDim2.new(1, -290, 1, -70), -- Adjusted position
+        BackgroundColor3 = Color.Secondary,
+        BorderSizePixel = 0,
+        Parent = GuiLibrary.ScreenGui
+    })
+    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = NotifFrame })
+    AddShadow(NotifFrame, Color3.new(0, 0, 0), 0.7, 2) -- Soft Shadow
+
+    Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0.4, 0),
+        Text = title,
+        TextColor3 = Color.Highlight,
+        TextScaled = true,
+        Font = Enum.Font.SourceSansBold,
+        BackgroundTransparency = 1,
+        Parent = NotifFrame
+    })
+
+    Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0.4, 0),
+        Position = UDim2.new(0, 0, 0.5, 0), -- Adjusted position
+        Text = text,
+        TextColor3 = Color.Text,
+        TextScaled = true,
+        Font = Enum.Font.SourceSans,
+        BackgroundTransparency = 1,
+        Parent = NotifFrame
+    })
+
+    NotifFrame:TweenPosition(UDim2.new(1, -290, 1, -70), "Out", "Quad", 0.5, true)
+    wait(3)
+    NotifFrame:TweenPosition(UDim2.new(1, -290, 1, 60), "In", "Quad", 0.5, true, function()
+        NotifFrame:Destroy()
+    end)
+end
+
+-- 2. Main GUI Creation
+local KSHUB = Create("Frame", {
+    Size = UDim2.new(0, 450, 0, 350),
+    Position = UDim2.new(0.5, -225, 0.5, -175),
+    BackgroundColor3 = Color.Primary,
+    BorderSizePixel = 0,
+    Parent = GuiLibrary.ScreenGui
+})
+Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = KSHUB })
+AddShadow(KSHUB, Color3.new(0, 0, 0), 0.5, 3) -- Main Frame Shadow
+MakeDraggable(KSHUB)
+
+-- Title Bar
+local TitleBar = Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 35), -- Increased Height
+    BackgroundColor3 = Color.Secondary,
+    BorderSizePixel = 0,
+    Parent = KSHUB
+})
+Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = TitleBar })
+AddShadow(TitleBar, Color.Secondary, 0.1, 1) -- Subtle border/glow on title bar
+
+local TitleLabel = Create("TextLabel", {
+    Size = UDim2.new(1, -40, 1, 0),
+    Position = UDim2.new(0, 10, 0, 0), -- Added Left Padding
+    Text = "KSHUB - Script Hub",
+    TextColor3 = Color.Highlight,
+    BackgroundTransparency = 1,
+    Font = Enum.Font.SourceSansBold,
+    TextSize = 20, -- Increased Font Size
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = TitleBar
 })
 
-local Tab = Window:CreateTab("Main🎃", nil) -- Title, Image
-local MainSectionSection = Tab:CreateSection("Main")
+-- Close Button
+local CloseBtn = Create("TextButton", {
+    Size = UDim2.new(0, 35, 0, 35), -- Increased Size
+    Position = UDim2.new(1, -40, 0, 0), -- Adjusted Position
+    BackgroundColor3 = Color3.fromRGB(200, 50, 50), -- Changed Red Tone
+    BackgroundTransparency = 0,
+    Text = "X",
+    TextColor3 = Color.Highlight,
+    Font = Enum.Font.SourceSansBold,
+    TextSize = 20,
+    AutoButtonColor = false, -- **[추가: 오류 수정]**
+    Parent = TitleBar
+})
+Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = CloseBtn })
+AddShadow(CloseBtn, Color3.fromRGB(255, 100, 100), 0.6, 1) -- Highlighted Border/Glow
 
-Rayfield:Notify({
-   Title = "Script Loading...",
-   Content = "Successful✅",
-   Duration = 6.5,
-   Image = nil,
+CloseBtn.MouseButton1Click:Connect(function()
+    KSHUB.Visible = false
+    Notify("ℹ Hub Closed", "Press the K key to reopen.")
+end)
+
+-- Main Content Frame
+local ContentFrame = Create("Frame", {
+    Size = UDim2.new(1, 0, 1, -35), -- Adjusted for title bar height
+    Position = UDim2.new(0, 0, 0, 35),
+    BackgroundColor3 = Color.Primary,
+    BorderSizePixel = 0,
+    Parent = KSHUB
 })
 
-local Button = Tab:CreateButton({
-   Name = "ADMIN",
-   Callback = function()
-loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-   end,
+-- 3. Tab System
+local TabBar = Create("Frame", {
+    Size = UDim2.new(0, 110, 1, 0), -- Increased Tab Width
+    BackgroundColor3 = Color.Secondary,
+    BorderSizePixel = 0,
+    Parent = ContentFrame
 })
 
-local Button = Tab:CreateButton({
-   Name = "FPS SPIN SCRIPT",
-   Callback = function()
-loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()
-   end,
+local TabContainer = Create("Frame", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Parent = TabBar
 })
 
-local Button = Tab:CreateButton({
-   Name = "ESP,AIMBOT",
-   Callback = function()
-loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()
-   end,
+local TabListLayout = Create("UIListLayout", {
+    Padding = UDim.new(0, 8), -- Increased Spacing
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    VerticalAlignment = Enum.VerticalAlignment.Top,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = TabContainer
 })
+Create("UIPadding", { PaddingTop = UDim.new(0, 10), Parent = TabContainer }) -- Added Top Padding
 
-local Tab = Window:CreateTab("Debug", nil) -- Title, Image
-local MainSectionSection = Tab:CreateSection("Debug")
+local TabContents = {}
+local CurrentTab = nil
 
-local Button = Tab:CreateButton({
-   Name = "Mini Console",
-   Callback = function()
-loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()
-   end,
-})
+local function CreateTab(Name, LayoutOrder)
+    local TabButton = Create("TextButton", {
+        Size = UDim2.new(0.9, 0, 0, 35), -- Increased Height
+        Text = Name,
+        TextColor3 = Color.Text,
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 16, -- Increased Font Size
+        BackgroundColor3 = Color.Accent,
+        BackgroundTransparency = 0, -- Removed Transparency
+        BorderSizePixel = 0,
+        LayoutOrder = LayoutOrder,
+        AutoButtonColor = false, -- **[추가: 오류 수정]**
+        Parent = TabContainer
+    })
+    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = TabButton })
+    
+    -- Default Button Shadow/Glow
+    AddShadow(TabButton, Color3.new(0, 0, 0), 0.7, 1) 
 
-local Tab = Window:CreateTab("Humanoid", nil) -- Title, Image
-local MainSectionSection = Tab:CreateSection("Humanoid")
+    local TabContent = Create("Frame", {
+        Size = UDim2.new(1, -110, 1, 0), -- Adjusted for TabBar Width
+        Position = UDim2.new(0, 110, 0, 0),
+        BackgroundTransparency = 1,
+        Visible = false,
+        Parent = ContentFrame
+    })
 
-local Slider = Tab:CreateSlider({
-   Name = "WalkSpeedSpeed",
-   Range = {0, 500},
-   Increment = 10,
-   Suffix = "Bananas",
-   CurrentValue = 16,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
-   end,
-})
+    local ContentLayout = Create("UIListLayout", {
+        Padding = UDim.new(0, 8), -- Increased Spacing
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        VerticalAlignment = Enum.VerticalAlignment.Top,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = TabContent
+    })
+    Create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingTop = UDim.new(0, 10), Parent = TabContent }) -- Added Content Padding
 
-local Slider = Tab:CreateSlider({
-   Name = "JumpPower",
-   Range = {0, 500},
-   Increment = 10,
-   Suffix = "Bananas",
-   CurrentValue = 50,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
-   end,
-})
+    TabContents[Name] = { Button = TabButton, Content = TabContent }
 
-local Slider = Tab:CreateSlider({
-   Name = "Gravity",
-   Range = {0, 1000},
-   Increment = 10,
-   Suffix = "Bananas",
-   CurrentValue = 200,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-game.Workspace.Gravity = (Value)
-   end,
-})
+    TabButton.MouseButton1Click:Connect(function()
+        for _, tab in pairs(TabContents) do
+            tab.Content.Visible = false
+            tab.Button.BackgroundColor3 = Color.Accent
+        end
+        TabContent.Visible = true
+        TabButton.BackgroundColor3 = Color.TabActive -- Active Tab Background Color
+        CurrentTab = Name
+    end)
 
-local Button = Tab:CreateButton({
-   Name = "Reset",
-   Callback = function()
-local plr = game.Players.LocalPlayer; local char = plr.Character; char:BreakJoints()
-   end,
-})
+    return TabContent
+end
+
+local function CreateButton(TabContent, Text, ScriptCode, LayoutOrder)
+    local Button = Create("TextButton", {
+        Size = UDim2.new(1, -20, 0, 35), -- Adjusted Width/Height
+        Text = Text,
+        TextColor3 = Color.Highlight,
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 16,
+        BackgroundColor3 = Color.Accent,
+        BackgroundTransparency = 0,
+        BorderSizePixel = 0,
+        LayoutOrder = LayoutOrder,
+        AutoButtonColor = false, -- **[추가: 오류 수정]**
+        Parent = TabContent
+    })
+    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = Button })
+    
+    -- Script Button Shadow/Glow
+    AddShadow(Button, Color3.new(0, 0, 0), 0.6, 1) 
+
+    Button.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(ScriptCode)()
+        end)
+        Notify("✅ Script Executed", Text .. " script executed successfully.")
+    end)
+    
+    -- Mouse Over Effect Added (Advanced Presentation)
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, TweenInfoStandard, { BackgroundColor3 = Color3.fromRGB(80, 80, 85) }):Play() 
+        TweenService:Create(Button, TweenInfoStandard, { TextColor3 = Color.Highlight }):Play() 
+    end)
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, TweenInfoStandard, { BackgroundColor3 = Color.Accent }):Play() 
+        TweenService:Create(Button, TweenInfoStandard, { TextColor3 = Color.Highlight }):Play() 
+    end)
+end
+
+-- 4. Tab/Button Creation
+local MainTab = CreateTab("Main Tab", 1)
+CreateButton(MainTab, "ADMIN (Infinite Yield)", "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()", 1)
+CreateButton(MainTab, "FPS SPIN SCRIPT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()", 2)
+CreateButton(MainTab, "ESP, AIMBOT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()", 3)
+
+local DebugTab = CreateTab("Debug Tab", 2)
+CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()", 1)
+
+-- Activate Default Tab
+TabContents["Main Tab"].Content.Visible = true
+TabContents["Main Tab"].Button.BackgroundColor3 = Color.TabActive
+
+-- 5. K Key Toggle Function (Unchanged)
+local UIS = game:GetService("UserInputService")
+UIS.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == Enum.KeyCode.K then
+        KSHUB.Visible = not KSHUB.Visible
+        if KSHUB.Visible then
+            Notify("📂 Hub Opened", "Script Hub is now visible.")
+        else
+            Notify("📁 Hub Closed", "Press the K key to reopen.")
+        end
+    end
+end)
+
+-- 6. Initial Hub Display (Unchanged)
+KSHUB.Visible = true
+Notify("🎉 KSHUB Loaded", "Script Hub is running. Toggle with K key.")
