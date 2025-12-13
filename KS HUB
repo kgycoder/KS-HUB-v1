@@ -3,6 +3,7 @@
     Advanced and simple design, rounded corners, natural shadow/glow effects added, 
     enlarged message box.
 ]]
+print ("loading...")
 
 -- 1. GUI Library and Utility Functions
 local GuiLibrary = {}
@@ -21,6 +22,10 @@ local function Create(ClassName, Properties)
     end
     return obj
 end
+
+--load KSHUB
+print(game:HttpGet("https://raw.githubusercontent.com/kgycoder/KSHub-loaded/refs/heads/main/text"))
+
 
 -- **Color Palette - Adjusted to Premium/Sophisticated Tones**
 local Color = {
@@ -306,6 +311,7 @@ local MainTab = CreateTab("Main Tab", 1)
 CreateButton(MainTab, "ADMIN (Infinite Yield)", "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()", 1)
 CreateButton(MainTab, "FPS SPIN SCRIPT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()", 2)
 CreateButton(MainTab, "ESP, AIMBOT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()", 3)
+CreateButton(MainTab, "SIMPLE PLAYER INFO", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/player-info/refs/heads/main/simple'))()", 4)
 
 local DebugTab = CreateTab("Debug Tab", 2)
 CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()", 1)
