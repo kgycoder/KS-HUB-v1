@@ -311,6 +311,7 @@ local MainTab = CreateTab("Main Tab", 1)
 CreateButton(MainTab, "ADMIN (Infinite Yield)", "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()", 1)
 CreateButton(MainTab, "FPS SPIN SCRIPT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()", 2)
 CreateButton(MainTab, "ESP, AIMBOT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()", 3)
+CreateButton(MainTab, "TP HUB", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/TP-HUB-main/refs/heads/main/TP%20hub-v1'))()", 4)
 
 local DebugTab = CreateTab("Debug Tab", 2)
 CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()", 1)
