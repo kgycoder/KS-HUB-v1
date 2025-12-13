@@ -314,7 +314,7 @@ CreateButton(MainTab, "ESP, AIMBOT", "loadstring(game:HttpGet('https://raw.githu
 
 local DebugTab = CreateTab("Debug Tab", 2)
 CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()", 1)
-CreateButton(DebugTab, "SIMPLE PLAYER INFO", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/player-info/refs/heads/main/simple'))()", 2)
+CreateButton(DebugTab, "Simple player info", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/player-info/refs/heads/main/simple'))()", 2)
 
 -- Activate Default Tab
 TabContents["Main Tab"].Content.Visible = true
