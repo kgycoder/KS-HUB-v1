@@ -337,4 +337,4 @@ end)
 
 -- 6. Initial Hub Display (Unchanged)
 KSHUB.Visible = true
-Notify("🎉 KSHUB Loaded", "Script Hub is running. Toggle with K key.")
+Notify("🎉 KSHUB Loaded", "Script Hub is running. Toggle with K key.") 
