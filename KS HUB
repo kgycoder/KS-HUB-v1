@@ -318,8 +318,6 @@ CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.git
 CreateButton(DebugTab, "Simple player info", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/player-info/refs/heads/main/simple'))()", 2)
 CreateButton(DebugTab, "Simple player info", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Object-Name-Viewer/refs/heads/main/Object%20Name%20Viewer'))()", 3)
 
-
-
 -- Activate Default Tab
 TabContents["Main Tab"].Content.Visible = true
 TabContents["Main Tab"].Button.BackgroundColor3 = Color.TabActive
