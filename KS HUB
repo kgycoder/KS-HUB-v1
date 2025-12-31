@@ -1,340 +1,372 @@
---[[ 
-    KSHUB - All-in-One Local Script Hub
-    Advanced and simple design, rounded corners, natural shadow/glow effects added, 
-    enlarged message box.
-]]
-print ("loading...")
+-- KS HUB: Professional Resizing Edition (Win11/Mac Style)
+-- Created as a single LocalScript
 
--- 1. GUI Library and Utility Functions
-local GuiLibrary = {}
-GuiLibrary.ScreenGui = Instance.new("ScreenGui")
-GuiLibrary.ScreenGui.Name = "KSHUB_ScreenGui"
-GuiLibrary.ScreenGui.DisplayOrder = 999
-GuiLibrary.ScreenGui.Parent = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
-local TweenService = game:GetService("TweenService") 
-local TweenInfoStandard = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0) 
+-- [기본 설정]
+local HUB_NAME = "KS HUB"
+local TOGGLE_KEY = Enum.KeyCode.K
+local MAIN_COLOR = Color3.fromRGB(20, 20, 20)
+local SIDE_HIGHLIGHT = Color3.fromRGB(40, 40, 40)
+local ACCENT_COLOR = Color3.fromRGB(255, 255, 255)
+local TEXT_COLOR = Color3.fromRGB(230, 230, 230)
 
-local function Create(ClassName, Properties)
-    local obj = Instance.new(ClassName)
-    for prop, value in pairs(Properties) do
-        obj[prop] = value
+-- 리사이징 설정
+local MIN_SIZE = Vector2.new(450, 295) -- 최소 크기
+local ASPECT_RATIO = 580 / 380 -- 고정 비율
+
+-- [UI 생성]
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KSHub_Ultimate_Resizer"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 999
+ScreenGui.Parent = CoreGui
+
+-- [알림 시스템] (이전과 동일)
+local NotifContainer = Instance.new("Frame")
+NotifContainer.Size = UDim2.new(0, 260, 1, -20)
+NotifContainer.Position = UDim2.new(1, -270, 0, 10)
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.Parent = ScreenGui
+
+local NotifList = Instance.new("UIListLayout")
+NotifList.Parent = NotifContainer
+NotifList.VerticalAlignment = Enum.VerticalAlignment.Bottom
+NotifList.Padding = UDim.new(0, 8)
+
+local function Notify(title, msg)
+    local NotifFrame = Instance.new("Frame")
+    NotifFrame.Size = UDim2.new(0, 240, 0, 65)
+    NotifFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    NotifFrame.BorderSizePixel = 0
+    NotifFrame.Parent = NotifContainer
+    Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 10)
+    
+    local Glow = Instance.new("ImageLabel")
+    Glow.Size = UDim2.new(1, 10, 1, 10)
+    Glow.Position = UDim2.new(0, -5, 0, -5)
+    Glow.BackgroundTransparency = 1
+    Glow.Image = "rbxassetid://1316045217"
+    Glow.ImageColor3 = Color3.new(0,0,0)
+    Glow.ImageTransparency = 0.7
+    Glow.Parent = NotifFrame
+
+    local T = Instance.new("TextLabel")
+    T.Size = UDim2.new(1, -30, 0, 25)
+    T.Position = UDim2.new(0, 15, 0, 8)
+    T.BackgroundTransparency = 1
+    T.Text = title
+    T.TextColor3 = Color3.fromRGB(255, 255, 255)
+    T.Font = Enum.Font.GothamBold
+    T.TextSize = 13
+    T.TextXAlignment = Enum.TextXAlignment.Left
+    T.Parent = NotifFrame
+    
+    local M = Instance.new("TextLabel")
+    M.Size = UDim2.new(1, -30, 0, 20)
+    M.Position = UDim2.new(0, 15, 0, 30)
+    M.BackgroundTransparency = 1
+    M.Text = msg
+    M.TextColor3 = Color3.fromRGB(180, 180, 180)
+    M.Font = Enum.Font.Gotham
+    M.TextSize = 11
+    M.TextXAlignment = Enum.TextXAlignment.Left
+    M.TextWrapped = true
+    M.Parent = NotifFrame
+
+    NotifFrame.Position = UDim2.new(1.5, 0, 0, 0)
+    TweenService:Create(NotifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+    task.delay(3, function()
+        local OutTween = TweenService:Create(NotifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0, 0, 0, 20), BackgroundTransparency = 1})
+        OutTween:Play()
+        OutTween.Completed:Connect(function() NotifFrame:Destroy() end)
+    end)
+end
+
+-- [메인 프레임]
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 580, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -290, 0.5, -190)
+MainFrame.BackgroundColor3 = MAIN_COLOR
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = MainFrame
+
+-- 리사이즈 시 강조될 테두리 (Win11 스타일)
+local ResizeBorder = Instance.new("UIStroke")
+ResizeBorder.Thickness = 0
+ResizeBorder.Color = Color3.fromRGB(100, 100, 100)
+ResizeBorder.Transparency = 0.5
+ResizeBorder.Parent = MainFrame
+
+-- 메인 글로우 (유지)
+local MainGlow = Instance.new("ImageLabel")
+MainGlow.Size = UDim2.new(1, 60, 1, 60)
+MainGlow.Position = UDim2.new(0, -30, 0, -30)
+MainGlow.BackgroundTransparency = 1
+MainGlow.Image = "rbxassetid://1316045217"
+MainGlow.ImageColor3 = Color3.new(0,0,0)
+MainGlow.ImageTransparency = 0.3
+MainGlow.ZIndex = MainFrame.ZIndex - 1
+MainGlow.Parent = MainFrame
+
+-- [내부 레이아웃 구조]
+local SidebarContainer = Instance.new("Frame")
+SidebarContainer.Size = UDim2.new(0.28, 0, 1, -60)
+SidebarContainer.Position = UDim2.new(0, 15, 0, 50)
+SidebarContainer.BackgroundTransparency = 1
+SidebarContainer.Parent = MainFrame
+
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.Parent = SidebarContainer
+TabListLayout.Padding = UDim.new(0, 5)
+
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Size = UDim2.new(0.68, 0, 1, -60)
+ContentContainer.Position = UDim2.new(0.3, 0, 0, 50)
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.Parent = MainFrame
+
+local Pages = {}
+local function CreatePage(name)
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.ScrollBarThickness = 0
+    Page.Visible = false
+    Page.Parent = ContentContainer
+    Instance.new("UIListLayout", Page).Padding = UDim.new(0, 8)
+    Pages[name] = Page
+    return Page
+end
+
+local MainTab = CreatePage("Main")
+local DebugTab = CreatePage("Debug")
+MainTab.Visible = true
+
+-- [리사이즈 핸들 (Win11 시각 효과)]
+local ResizeHandle = Instance.new("ImageButton")
+ResizeHandle.Name = "ResizeHandle"
+ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
+ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
+ResizeHandle.BackgroundTransparency = 1
+ResizeHandle.Image = "rbxassetid://6034822430" -- Diagonal Resize Icon
+ResizeHandle.ImageColor3 = Color3.fromRGB(100, 100, 100)
+ResizeHandle.ZIndex = 10
+ResizeHandle.Parent = MainFrame
+
+-- [리사이징 로직]
+local isResizing = false
+ResizeHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isResizing = true
+        ResizeBorder.Thickness = 1.5 -- 하이라이트 활성화
     end
-    return obj
-end
+end)
 
---load KSHUB
-print(game:HttpGet("https://raw.githubusercontent.com/kgycoder/KSHub-loaded/refs/heads/main/text"))
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isResizing = false
+        ResizeBorder.Thickness = 0
+    end
+end)
 
-
--- **Color Palette - Adjusted to Premium/Sophisticated Tones**
-local Color = {
-    Primary = Color3.fromRGB(28, 28, 30),   -- Main Background (Darker)
-    Secondary = Color3.fromRGB(35, 35, 38), -- Sub Background/Title Bar
-    Accent = Color3.fromRGB(50, 50, 55),    -- Default Button/Separator
-    Highlight = Color3.fromRGB(240, 240, 245), -- Title/Key Text
-    Text = Color3.fromRGB(180, 180, 190),   -- General Text (Slightly Lighter)
-    TabActive = Color3.fromRGB(60, 60, 65)  -- Active Tab
-}
-
-local CornerRadius = 10 -- **Enlarged Corner Rounding**
-local ButtonTransparency = 0 -- **Button Transparency Removed, Replaced by Background Color**
-
--- **UI Functions for Natural Shadow/Glow Effect**
-local function AddShadow(Target, Color, Transparency, Thickness)
-    -- Using UIStroke for a pseudo-shadow/glow effect
-    local UIStroke = Create("UIStroke", {
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border, -- Apply to outer border (for glow/shadow look)
-        Color = Color,
-        Transparency = Transparency,
-        Thickness = Thickness,
-        LineJoinMode = Enum.LineJoinMode.Round,
-        Parent = Target
-    })
-end
-
-local function AddDropShadow(Target, Size, Color, Transparency)
-    -- Placeholder/Note: Direct DropShadow instance is not available in Roblox Studio.
-    -- The UIStroke in AddShadow is being used as the primary shadow/glow mechanism.
-    -- This function is kept minimal as the effect is primarily managed by UIStroke.
-end
-
--- Make Draggable Function (Unchanged)
-local function MakeDraggable(Frame)
-    local dragging = false
-    local dragStart, startPos
-    local UIS = game:GetService("UserInputService")
-
-    Frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = Frame.Position
+RunService.RenderStepped:Connect(function()
+    if isResizing then
+        local mousePos = UserInputService:GetMouseLocation()
+        local framePos = MainFrame.AbsolutePosition
+        
+        local newWidth = math.max(MIN_SIZE.X, mousePos.X - framePos.X)
+        local newHeight = newWidth / ASPECT_RATIO -- 비율 유지 중요
+        
+        -- 높이가 화면을 넘어가지 않도록 체크
+        if newHeight < MIN_SIZE.Y then
+            newHeight = MIN_SIZE.Y
+            newWidth = newHeight * ASPECT_RATIO
         end
+        
+        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+    end
+end)
+
+-- 리사이즈 핸들 호버 효과
+ResizeHandle.MouseEnter:Connect(function()
+    TweenService:Create(ResizeHandle, TweenInfo.new(0.2), {ImageColor3 = Color3.new(1,1,1)}):Play()
+end)
+ResizeHandle.MouseLeave:Connect(function()
+    TweenService:Create(ResizeHandle, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+end)
+
+-- [기존 기능 유지 및 탭 버튼]
+local function CreateTabButton(name)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 40)
+    Btn.BackgroundColor3 = SIDE_HIGHLIGHT
+    Btn.BackgroundTransparency = 1 
+    Btn.Text = ""
+    Btn.Parent = SidebarContainer
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
+    
+    local BtnLabel = Instance.new("TextLabel")
+    BtnLabel.Size = UDim2.new(1, -35, 1, 0)
+    BtnLabel.Position = UDim2.new(0, 25, 0, 0)
+    BtnLabel.BackgroundTransparency = 1
+    BtnLabel.Text = name
+    BtnLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+    BtnLabel.Font = Enum.Font.GothamSemibold
+    BtnLabel.TextSize = 14
+    BtnLabel.TextXAlignment = Enum.TextXAlignment.Left
+    BtnLabel.Parent = Btn
+
+    local Indicator = Instance.new("Frame")
+    Indicator.Size = UDim2.new(0, 3, 0, 14)
+    Indicator.Position = UDim2.new(0, 10, 0.5, -7)
+    Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Indicator.BackgroundTransparency = 1
+    Indicator.BorderSizePixel = 0
+    Indicator.Parent = Btn
+    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
+
+    Btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(Pages) do p.Visible = false end
+        Pages[name].Visible = true
+        for _, b in ipairs(SidebarContainer:GetChildren()) do
+            if b:IsA("TextButton") then
+                TweenService:Create(b, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(b.TextLabel, TweenInfo.new(0.3), {TextColor3 = Color3.fromRGB(140, 140, 140)}):Play()
+                TweenService:Create(b:FindFirstChildOfClass("Frame"), TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            end
+        end
+        TweenService:Create(Btn, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
+        TweenService:Create(BtnLabel, TweenInfo.new(0.3), {TextColor3 = Color3.new(1,1,1)}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
     end)
 
-    Frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                         startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+    if name == "Main" then
+        Btn.BackgroundTransparency = 0.8
+        BtnLabel.TextColor3 = Color3.new(1,1,1)
+        Indicator.BackgroundTransparency = 0
+    end
 end
 
--- Notification Function - **Enlarged Size and Applied Shadow/Rounded Corners**
-local function Notify(title, text)
-    local NotifFrame = Create("Frame", {
-        Size = UDim2.new(0, 280, 0, 60), -- **Enlarged Size (250x50 -> 280x60)**
-        Position = UDim2.new(1, -290, 1, -70), -- Adjusted position
-        BackgroundColor3 = Color.Secondary,
-        BorderSizePixel = 0,
-        Parent = GuiLibrary.ScreenGui
-    })
-    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = NotifFrame })
-    AddShadow(NotifFrame, Color3.new(0, 0, 0), 0.7, 2) -- Soft Shadow
+CreateTabButton("Main")
+CreateTabButton("Debug")
 
-    Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0.4, 0),
-        Text = title,
-        TextColor3 = Color.Highlight,
-        TextScaled = true,
-        Font = Enum.Font.SourceSansBold,
-        BackgroundTransparency = 1,
-        Parent = NotifFrame
-    })
+-- [타이틀바]
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+TitleBar.BackgroundTransparency = 1
+TitleBar.Parent = MainFrame
 
-    Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0.4, 0),
-        Position = UDim2.new(0, 0, 0.5, 0), -- Adjusted position
-        Text = text,
-        TextColor3 = Color.Text,
-        TextScaled = true,
-        Font = Enum.Font.SourceSans,
-        BackgroundTransparency = 1,
-        Parent = NotifFrame
-    })
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -100, 1, 0)
+TitleLabel.Position = UDim2.new(0, 25, 0, 0)
+TitleLabel.Text = HUB_NAME
+TitleLabel.TextColor3 = TEXT_COLOR
+TitleLabel.TextSize = 18
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Parent = TitleBar
 
-    NotifFrame:TweenPosition(UDim2.new(1, -290, 1, -70), "Out", "Quad", 0.5, true)
-    wait(3)
-    NotifFrame:TweenPosition(UDim2.new(1, -290, 1, 60), "In", "Quad", 0.5, true, function()
-        NotifFrame:Destroy()
-    end)
-end
-
--- 2. Main GUI Creation
-local KSHUB = Create("Frame", {
-    Size = UDim2.new(0, 450, 0, 350),
-    Position = UDim2.new(0.5, -225, 0.5, -175),
-    BackgroundColor3 = Color.Primary,
-    BorderSizePixel = 0,
-    Parent = GuiLibrary.ScreenGui
-})
-Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = KSHUB })
-AddShadow(KSHUB, Color3.new(0, 0, 0), 0.5, 3) -- Main Frame Shadow
-MakeDraggable(KSHUB)
-
--- Title Bar
-local TitleBar = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 35), -- Increased Height
-    BackgroundColor3 = Color.Secondary,
-    BorderSizePixel = 0,
-    Parent = KSHUB
-})
-Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = TitleBar })
-AddShadow(TitleBar, Color.Secondary, 0.1, 1) -- Subtle border/glow on title bar
-
-local TitleLabel = Create("TextLabel", {
-    Size = UDim2.new(1, -40, 1, 0),
-    Position = UDim2.new(0, 10, 0, 0), -- Added Left Padding
-    Text = "KSHUB - Script Hub",
-    TextColor3 = Color.Highlight,
-    BackgroundTransparency = 1,
-    Font = Enum.Font.SourceSansBold,
-    TextSize = 20, -- Increased Font Size
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = TitleBar
-})
-
--- Close Button
-local CloseBtn = Create("TextButton", {
-    Size = UDim2.new(0, 35, 0, 35), -- Increased Size
-    Position = UDim2.new(1, -40, 0, 0), -- Adjusted Position
-    BackgroundColor3 = Color3.fromRGB(200, 50, 50), -- Changed Red Tone
-    BackgroundTransparency = 0,
-    Text = "X",
-    TextColor3 = Color.Highlight,
-    Font = Enum.Font.SourceSansBold,
-    TextSize = 20,
-    AutoButtonColor = false, -- **[추가: 오류 수정]**
-    Parent = TitleBar
-})
-Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = CloseBtn })
-AddShadow(CloseBtn, Color3.fromRGB(255, 100, 100), 0.6, 1) -- Highlighted Border/Glow
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -40, 0, 12)
+CloseBtn.BackgroundTransparency = 1 -- 배경을 100% 투명하게 설정
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.TextSize = 18
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1, 0)
 
 CloseBtn.MouseButton1Click:Connect(function()
-    KSHUB.Visible = false
-    Notify("ℹ Hub Closed", "Press the K key to reopen.")
+    MainFrame.Visible = false
+    Notify("HUB Status", "Hidden. Toggle: '" .. TOGGLE_KEY.Name .. "'")
 end)
 
--- Main Content Frame
-local ContentFrame = Create("Frame", {
-    Size = UDim2.new(1, 0, 1, -35), -- Adjusted for title bar height
-    Position = UDim2.new(0, 0, 0, 35),
-    BackgroundColor3 = Color.Primary,
-    BorderSizePixel = 0,
-    Parent = KSHUB
-})
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+end)
 
--- 3. Tab System
-local TabBar = Create("Frame", {
-    Size = UDim2.new(0, 110, 1, 0), -- Increased Tab Width
-    BackgroundColor3 = Color.Secondary,
-    BorderSizePixel = 0,
-    Parent = ContentFrame
-})
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+end)
 
-local TabContainer = Create("Frame", {
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    Parent = TabBar
-})
-
-local TabListLayout = Create("UIListLayout", {
-    Padding = UDim.new(0, 8), -- Increased Spacing
-    HorizontalAlignment = Enum.HorizontalAlignment.Center,
-    VerticalAlignment = Enum.VerticalAlignment.Top,
-    SortOrder = Enum.SortOrder.LayoutOrder,
-    Parent = TabContainer
-})
-Create("UIPadding", { PaddingTop = UDim.new(0, 10), Parent = TabContainer }) -- Added Top Padding
-
-local TabContents = {}
-local CurrentTab = nil
-
-local function CreateTab(Name, LayoutOrder)
-    local TabButton = Create("TextButton", {
-        Size = UDim2.new(0.9, 0, 0, 35), -- Increased Height
-        Text = Name,
-        TextColor3 = Color.Text,
-        Font = Enum.Font.SourceSansBold,
-        TextSize = 16, -- Increased Font Size
-        BackgroundColor3 = Color.Accent,
-        BackgroundTransparency = 0, -- Removed Transparency
-        BorderSizePixel = 0,
-        LayoutOrder = LayoutOrder,
-        AutoButtonColor = false, -- **[추가: 오류 수정]**
-        Parent = TabContainer
-    })
-    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = TabButton })
+-- [기능 추가 버튼]
+local function AddButton(parent, name, desc, callback)
+    local BtnFrame = Instance.new("TextButton")
+    BtnFrame.Size = UDim2.new(1, -15, 0, 55)
+    BtnFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    BtnFrame.Text = ""
+    BtnFrame.Parent = parent
+    Instance.new("UICorner", BtnFrame).CornerRadius = UDim.new(0, 10)
     
-    -- Default Button Shadow/Glow
-    AddShadow(TabButton, Color3.new(0, 0, 0), 0.7, 1) 
-
-    local TabContent = Create("Frame", {
-        Size = UDim2.new(1, -110, 1, 0), -- Adjusted for TabBar Width
-        Position = UDim2.new(0, 110, 0, 0),
-        BackgroundTransparency = 1,
-        Visible = false,
-        Parent = ContentFrame
-    })
-
-    local ContentLayout = Create("UIListLayout", {
-        Padding = UDim.new(0, 8), -- Increased Spacing
-        HorizontalAlignment = Enum.HorizontalAlignment.Left,
-        VerticalAlignment = Enum.VerticalAlignment.Top,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = TabContent
-    })
-    Create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingTop = UDim.new(0, 10), Parent = TabContent }) -- Added Content Padding
-
-    TabContents[Name] = { Button = TabButton, Content = TabContent }
-
-    TabButton.MouseButton1Click:Connect(function()
-        for _, tab in pairs(TabContents) do
-            tab.Content.Visible = false
-            tab.Button.BackgroundColor3 = Color.Accent
-        end
-        TabContent.Visible = true
-        TabButton.BackgroundColor3 = Color.TabActive -- Active Tab Background Color
-        CurrentTab = Name
-    end)
-
-    return TabContent
-end
-
-local function CreateButton(TabContent, Text, ScriptCode, LayoutOrder)
-    local Button = Create("TextButton", {
-        Size = UDim2.new(1, -20, 0, 35), -- Adjusted Width/Height
-        Text = Text,
-        TextColor3 = Color.Highlight,
-        Font = Enum.Font.SourceSansBold,
-        TextSize = 16,
-        BackgroundColor3 = Color.Accent,
-        BackgroundTransparency = 0,
-        BorderSizePixel = 0,
-        LayoutOrder = LayoutOrder,
-        AutoButtonColor = false, -- **[추가: 오류 수정]**
-        Parent = TabContent
-    })
-    Create("UICorner", { CornerRadius = UDim.new(0, CornerRadius), Parent = Button })
+    local T = Instance.new("TextLabel")
+    T.Size = UDim2.new(1, -30, 0, 25)
+    T.Position = UDim2.new(0, 15, 0, 10)
+    T.Text = name
+    T.TextColor3 = Color3.new(1, 1, 1)
+    T.Font = Enum.Font.GothamBold
+    T.TextSize = 13
+    T.BackgroundTransparency = 1
+    T.TextXAlignment = Enum.TextXAlignment.Left
+    T.Parent = BtnFrame
     
-    -- Script Button Shadow/Glow
-    AddShadow(Button, Color3.new(0, 0, 0), 0.6, 1) 
+    local D = Instance.new("TextLabel")
+    D.Size = UDim2.new(1, -30, 0, 15)
+    D.Position = UDim2.new(0, 15, 0, 30)
+    D.Text = desc
+    D.TextColor3 = Color3.fromRGB(120, 120, 120)
+    D.Font = Enum.Font.Gotham
+    D.TextSize = 10
+    D.BackgroundTransparency = 1
+    D.TextXAlignment = Enum.TextXAlignment.Left
+    D.Parent = BtnFrame
 
-    Button.MouseButton1Click:Connect(function()
-        pcall(function()
-            loadstring(ScriptCode)()
-        end)
-        Notify("✅ Script Executed", Text .. " script executed successfully.")
-    end)
-    
-    -- Mouse Over Effect Added (Advanced Presentation)
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, TweenInfoStandard, { BackgroundColor3 = Color3.fromRGB(80, 80, 85) }):Play() 
-        TweenService:Create(Button, TweenInfoStandard, { TextColor3 = Color.Highlight }):Play() 
-    end)
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, TweenInfoStandard, { BackgroundColor3 = Color.Accent }):Play() 
-        TweenService:Create(Button, TweenInfoStandard, { TextColor3 = Color.Highlight }):Play() 
+    BtnFrame.MouseButton1Click:Connect(function()
+        pcall(callback)
+        Notify("Task Executed", name .. " Loaded.")
     end)
 end
 
--- 4. Tab/Button Creation
-local MainTab = CreateTab("Main Tab", 1)
-CreateButton(MainTab, "ADMIN (Infinite Yield)", "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()", 1)
-CreateButton(MainTab, "FPS SPIN SCRIPT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))()", 2)
-CreateButton(MainTab, "ESP, AIMBOT", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))()", 3)
-CreateButton(MainTab, "TP HUB", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/TP-HUB-main/refs/heads/main/TP%20hub-v1'))()", 4)
+-- [스크립트 리스트]
+AddButton(MainTab, "ADMIN", "Infinite Yield 실행", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end)
+AddButton(MainTab, "FPS SPIN SCRIPT", "Rivals 전용 스크립트", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))() end)
+AddButton(MainTab, "ESP, AIMBOT", "전용 조준 및 투시 헬퍼", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))() end)
+AddButton(MainTab, "TP HUB", "텔레포트 유틸리티 모음", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/TP-HUB-main/refs/heads/main/TP%20hub-v1'))() end)
 
-local DebugTab = CreateTab("Debug Tab", 2)
-CreateButton(DebugTab, "Mini Console", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))()", 1)
-CreateButton(DebugTab, "Simple player info", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/player-info/refs/heads/main/simple'))()", 2)
-CreateButton(DebugTab, "Object Name Viewer", "loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Object-Name-Viewer/refs/heads/main/Object%20Name%20Viewer'))()", 3)
+AddButton(DebugTab, "Mini Console", "디버깅용 미니 콘솔", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))() end)
+AddButton(DebugTab, "Object Name Viewer", "오브젝트 이름 확인", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Object-Name-Viewer/refs/heads/main/Object%20Name%20Viewer'))() end)
 
--- Activate Default Tab
-TabContents["Main Tab"].Content.Visible = true
-TabContents["Main Tab"].Button.BackgroundColor3 = Color.TabActive
+-- [드래그 로직 (타이틀바 클릭 시)]
+local dragging, dragStart, startPos
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true dragStart = input.Position startPos = MainFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+end)
 
--- 5. K Key Toggle Function (Unchanged)
-local UIS = game:GetService("UserInputService")
-UIS.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.K then
-        KSHUB.Visible = not KSHUB.Visible
-        if KSHUB.Visible then
-            Notify("📂 Hub Opened", "Script Hub is now visible.")
-        else
-            Notify("📁 Hub Closed", "Press the K key to reopen.")
-        end
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == TOGGLE_KEY then
+        MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- 6. Initial Hub Display (Unchanged)
-KSHUB.Visible = true
-Notify("🎉 KSHUB Loaded", "Script Hub is running. Toggle with K key.") 
+Notify("KS HUB Loaded", "K 키로 토글 | 우측 하단 리사이즈")
