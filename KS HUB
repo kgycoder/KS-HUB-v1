@@ -1,5 +1,7 @@
 -- KS HUB: Professional Resizing Edition (Win11/Mac Style)
 -- Created as a single LocalScript
+--Loading
+print ("Loading...")
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -345,6 +347,9 @@ AddButton(MainTab, "TP HUB", "텔레포트 유틸리티 모음", function() load
 
 AddButton(DebugTab, "Mini Console", "디버깅용 미니 콘솔", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))() end)
 AddButton(DebugTab, "Object Name Viewer", "오브젝트 이름 확인", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Object-Name-Viewer/refs/heads/main/Object%20Name%20Viewer'))() end)
+
+--[KSHUB loaded]
+print(game:HttpGet('https://raw.githubusercontent.com/kgycoder/KSHub-loaded/refs/heads/main/text'))
 
 -- [드래그 로직 (타이틀바 클릭 시)]
 local dragging, dragStart, startPos
