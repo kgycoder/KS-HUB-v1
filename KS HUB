@@ -1,7 +1,6 @@
--- KS HUB: Professional Resizing Edition (Win11/Mac Style)
--- Created as a single LocalScript
---Loading
-print ("Loading...")
+-- KS HUB: Professional Resizing Edition (Enhanced Theme System)
+-- Integrated with Fixed Close Button & Hover Effects
+print("Loading...")
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -17,8 +16,8 @@ local ACCENT_COLOR = Color3.fromRGB(255, 255, 255)
 local TEXT_COLOR = Color3.fromRGB(230, 230, 230)
 
 -- 리사이징 설정
-local MIN_SIZE = Vector2.new(450, 295) -- 최소 크기
-local ASPECT_RATIO = 580 / 380 -- 고정 비율
+local MIN_SIZE = Vector2.new(450, 295)
+local ASPECT_RATIO = 580 / 380
 
 -- [UI 생성]
 local ScreenGui = Instance.new("ScreenGui")
@@ -27,7 +26,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = CoreGui
 
--- [알림 시스템] (이전과 동일)
+-- [알림 시스템]
 local NotifContainer = Instance.new("Frame")
 NotifContainer.Size = UDim2.new(0, 260, 1, -20)
 NotifContainer.Position = UDim2.new(1, -270, 0, 10)
@@ -101,14 +100,12 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 16)
 MainCorner.Parent = MainFrame
 
--- 리사이즈 시 강조될 테두리 (Win11 스타일)
 local ResizeBorder = Instance.new("UIStroke")
 ResizeBorder.Thickness = 0
 ResizeBorder.Color = Color3.fromRGB(100, 100, 100)
 ResizeBorder.Transparency = 0.5
 ResizeBorder.Parent = MainFrame
 
--- 메인 글로우 (유지)
 local MainGlow = Instance.new("ImageLabel")
 MainGlow.Size = UDim2.new(1, 60, 1, 60)
 MainGlow.Position = UDim2.new(0, -30, 0, -30)
@@ -119,7 +116,7 @@ MainGlow.ImageTransparency = 0.3
 MainGlow.ZIndex = MainFrame.ZIndex - 1
 MainGlow.Parent = MainFrame
 
--- [내부 레이아웃 구조]
+-- [내부 구조]
 local SidebarContainer = Instance.new("Frame")
 SidebarContainer.Size = UDim2.new(0.28, 0, 1, -60)
 SidebarContainer.Position = UDim2.new(0, 15, 0, 50)
@@ -151,117 +148,10 @@ end
 
 local MainTab = CreatePage("Main")
 local DebugTab = CreatePage("Debug")
+local SettingsTab = CreatePage("Settings")
 MainTab.Visible = true
 
--- [리사이즈 핸들 (Win11 시각 효과)]
-local ResizeHandle = Instance.new("ImageButton")
-ResizeHandle.Name = "ResizeHandle"
-ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
-ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
-ResizeHandle.BackgroundTransparency = 1
-ResizeHandle.Image = "rbxassetid://6034822430" -- Diagonal Resize Icon
-ResizeHandle.ImageColor3 = Color3.fromRGB(100, 100, 100)
-ResizeHandle.ZIndex = 10
-ResizeHandle.Parent = MainFrame
-
--- [리사이징 로직]
-local isResizing = false
-ResizeHandle.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isResizing = true
-        ResizeBorder.Thickness = 1.5 -- 하이라이트 활성화
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isResizing = false
-        ResizeBorder.Thickness = 0
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if isResizing then
-        local mousePos = UserInputService:GetMouseLocation()
-        local framePos = MainFrame.AbsolutePosition
-        
-        local newWidth = math.max(MIN_SIZE.X, mousePos.X - framePos.X)
-        local newHeight = newWidth / ASPECT_RATIO -- 비율 유지 중요
-        
-        -- 높이가 화면을 넘어가지 않도록 체크
-        if newHeight < MIN_SIZE.Y then
-            newHeight = MIN_SIZE.Y
-            newWidth = newHeight * ASPECT_RATIO
-        end
-        
-        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
-    end
-end)
-
--- 리사이즈 핸들 호버 효과
-ResizeHandle.MouseEnter:Connect(function()
-    TweenService:Create(ResizeHandle, TweenInfo.new(0.2), {ImageColor3 = Color3.new(1,1,1)}):Play()
-end)
-ResizeHandle.MouseLeave:Connect(function()
-    TweenService:Create(ResizeHandle, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(100, 100, 100)}):Play()
-end)
-
--- [기존 기능 유지 및 탭 버튼]
-local function CreateTabButton(name)
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, -10, 0, 40)
-    Btn.BackgroundColor3 = SIDE_HIGHLIGHT
-    Btn.BackgroundTransparency = 1 
-    Btn.Text = ""
-    Btn.Parent = SidebarContainer
-    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
-    
-    local BtnLabel = Instance.new("TextLabel")
-    BtnLabel.Size = UDim2.new(1, -35, 1, 0)
-    BtnLabel.Position = UDim2.new(0, 25, 0, 0)
-    BtnLabel.BackgroundTransparency = 1
-    BtnLabel.Text = name
-    BtnLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-    BtnLabel.Font = Enum.Font.GothamSemibold
-    BtnLabel.TextSize = 14
-    BtnLabel.TextXAlignment = Enum.TextXAlignment.Left
-    BtnLabel.Parent = Btn
-
-    local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0, 3, 0, 14)
-    Indicator.Position = UDim2.new(0, 10, 0.5, -7)
-    Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Indicator.BackgroundTransparency = 1
-    Indicator.BorderSizePixel = 0
-    Indicator.Parent = Btn
-    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
-
-    Btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Pages) do p.Visible = false end
-        Pages[name].Visible = true
-        for _, b in ipairs(SidebarContainer:GetChildren()) do
-            if b:IsA("TextButton") then
-                TweenService:Create(b, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-                TweenService:Create(b.TextLabel, TweenInfo.new(0.3), {TextColor3 = Color3.fromRGB(140, 140, 140)}):Play()
-                TweenService:Create(b:FindFirstChildOfClass("Frame"), TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-            end
-        end
-        TweenService:Create(Btn, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
-        TweenService:Create(BtnLabel, TweenInfo.new(0.3), {TextColor3 = Color3.new(1,1,1)}):Play()
-        TweenService:Create(Indicator, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
-    end)
-
-    if name == "Main" then
-        Btn.BackgroundTransparency = 0.8
-        BtnLabel.TextColor3 = Color3.new(1,1,1)
-        Indicator.BackgroundTransparency = 0
-    end
-end
-
-CreateTabButton("Main")
-CreateTabButton("Debug")
-
--- [타이틀바]
+-- [타이틀바 및 닫기 버튼]
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 50)
 TitleBar.BackgroundTransparency = 1
@@ -281,28 +171,122 @@ TitleLabel.Parent = TitleBar
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
 CloseBtn.Position = UDim2.new(1, -40, 0, 12)
-CloseBtn.BackgroundTransparency = 1 -- 배경을 100% 투명하게 설정
+CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "×"
-CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.TextColor3 = TEXT_COLOR -- 타이틀 텍스트 색상과 동기화
 CloseBtn.TextSize = 18
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Parent = TitleBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1, 0)
 
+-- [닫기 버튼 기능 및 호버 효과 복구]
 CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     Notify("HUB Status", "Hidden. Toggle: '" .. TOGGLE_KEY.Name .. "'")
 end)
 
 CloseBtn.MouseEnter:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {
+        BackgroundTransparency = 0.8, 
+        BackgroundColor3 = Color3.fromRGB(255, 80, 80),
+        TextColor3 = Color3.new(1, 1, 1) -- 호버 시에는 흰색으로 고정
+    }):Play()
 end)
 
 CloseBtn.MouseLeave:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {
+        BackgroundTransparency = 1,
+        TextColor3 = TitleLabel.TextColor3 -- 현재 타이틀 색상으로 복구
+    }):Play()
 end)
 
--- [기능 추가 버튼]
+-- [테마 변경 로직]
+local function SetTheme(mainColor, accentColor, btnColor, textColor)
+    MAIN_COLOR = mainColor
+    ACCENT_COLOR = accentColor
+    
+    TweenService:Create(MainFrame, TweenInfo.new(0.5), {BackgroundColor3 = mainColor}):Play()
+    TweenService:Create(TitleLabel, TweenInfo.new(0.5), {TextColor3 = textColor}):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.5), {TextColor3 = textColor}):Play() -- X 버튼 색상 변경
+    
+    for _, page in pairs(Pages) do
+        for _, obj in ipairs(page:GetChildren()) do
+            if obj:IsA("TextButton") then
+                TweenService:Create(obj, TweenInfo.new(0.5), {BackgroundColor3 = btnColor}):Play()
+                if obj:FindFirstChild("Title") then obj.Title.TextColor3 = textColor end
+            end
+        end
+    end
+    
+    for _, btn in ipairs(SidebarContainer:GetChildren()) do
+        if btn:IsA("TextButton") then
+            btn.Indicator.BackgroundColor3 = accentColor
+            if btn.BackgroundTransparency < 1 then
+                btn.BtnLabel.TextColor3 = accentColor
+            end
+        end
+    end
+end
+
+-- [탭 버튼 생성 기능]
+local function CreateTabButton(name)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 40)
+    Btn.BackgroundColor3 = SIDE_HIGHLIGHT
+    Btn.BackgroundTransparency = 1 
+    Btn.Text = ""
+    Btn.Parent = SidebarContainer
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
+    
+    local BtnLabel = Instance.new("TextLabel")
+    BtnLabel.Name = "BtnLabel"
+    BtnLabel.Size = UDim2.new(1, -35, 1, 0)
+    BtnLabel.Position = UDim2.new(0, 25, 0, 0)
+    BtnLabel.BackgroundTransparency = 1
+    BtnLabel.Text = name
+    BtnLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+    BtnLabel.Font = Enum.Font.GothamSemibold
+    BtnLabel.TextSize = 14
+    BtnLabel.TextXAlignment = Enum.TextXAlignment.Left
+    BtnLabel.Parent = Btn
+
+    local Indicator = Instance.new("Frame")
+    Indicator.Name = "Indicator"
+    Indicator.Size = UDim2.new(0, 3, 0, 14)
+    Indicator.Position = UDim2.new(0, 10, 0.5, -7)
+    Indicator.BackgroundColor3 = ACCENT_COLOR
+    Indicator.BackgroundTransparency = 1
+    Indicator.BorderSizePixel = 0
+    Indicator.Parent = Btn
+    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
+
+    Btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(Pages) do p.Visible = false end
+        Pages[name].Visible = true
+        for _, b in ipairs(SidebarContainer:GetChildren()) do
+            if b:IsA("TextButton") then
+                TweenService:Create(b, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(b.BtnLabel, TweenInfo.new(0.3), {TextColor3 = Color3.fromRGB(140, 140, 140)}):Play()
+                TweenService:Create(b.Indicator, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            end
+        end
+        TweenService:Create(Btn, TweenInfo.new(0.3), {BackgroundTransparency = 0.8}):Play()
+        TweenService:Create(BtnLabel, TweenInfo.new(0.3), {TextColor3 = ACCENT_COLOR}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+    end)
+
+    if name == "Main" then
+        Btn.BackgroundTransparency = 0.8
+        BtnLabel.TextColor3 = ACCENT_COLOR
+        Indicator.BackgroundTransparency = 0
+    end
+end
+
+CreateTabButton("Main")
+CreateTabButton("Debug")
+CreateTabButton("Settings")
+
+-- [기능 추가 버튼 함수]
 local function AddButton(parent, name, desc, callback)
     local BtnFrame = Instance.new("TextButton")
     BtnFrame.Size = UDim2.new(1, -15, 0, 55)
@@ -312,6 +296,7 @@ local function AddButton(parent, name, desc, callback)
     Instance.new("UICorner", BtnFrame).CornerRadius = UDim.new(0, 10)
     
     local T = Instance.new("TextLabel")
+    T.Name = "Title"
     T.Size = UDim2.new(1, -30, 0, 25)
     T.Position = UDim2.new(0, 15, 0, 10)
     T.Text = name
@@ -323,6 +308,7 @@ local function AddButton(parent, name, desc, callback)
     T.Parent = BtnFrame
     
     local D = Instance.new("TextLabel")
+    D.Name = "Desc"
     D.Size = UDim2.new(1, -30, 0, 15)
     D.Position = UDim2.new(0, 15, 0, 30)
     D.Text = desc
@@ -339,7 +325,7 @@ local function AddButton(parent, name, desc, callback)
     end)
 end
 
--- [스크립트 리스트]
+-- [기존 기능 로드]
 AddButton(MainTab, "ADMIN", "Infinite Yield 실행", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end)
 AddButton(MainTab, "FPS SPIN SCRIPT", "Rivals 전용 스크립트", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/roblox-rivals-script/refs/heads/main/rivals%20KS%20script'))() end)
 AddButton(MainTab, "ESP, AIMBOT", "전용 조준 및 투시 헬퍼", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/esp-aimbot/refs/heads/main/aim.lua'))() end)
@@ -348,10 +334,49 @@ AddButton(MainTab, "TP HUB", "텔레포트 유틸리티 모음", function() load
 AddButton(DebugTab, "Mini Console", "디버깅용 미니 콘솔", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Mini-console/refs/heads/main/MiniConsole.lua'))() end)
 AddButton(DebugTab, "Object Name Viewer", "오브젝트 이름 확인", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/kgycoder/Object-Name-Viewer/refs/heads/main/Object%20Name%20Viewer'))() end)
 
---[KSHUB loaded]
-print(game:HttpGet('https://raw.githubusercontent.com/kgycoder/KSHub-loaded/refs/heads/main/text'))
+-- [세팅 - 테마 옵션]
+AddButton(SettingsTab, "Dark Theme (Default)", "어두운 테마로 변경", function()
+    SetTheme(Color3.fromRGB(20, 20, 20), Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 30), Color3.fromRGB(230, 230, 230))
+end)
 
--- [드래그 로직 (타이틀바 클릭 시)]
+AddButton(SettingsTab, "Light Theme", "밝은 테마로 변경 (X버튼 가독성 개선)", function()
+    SetTheme(Color3.fromRGB(245, 245, 245), Color3.fromRGB(50, 50, 50), Color3.fromRGB(225, 225, 225), Color3.fromRGB(40, 40, 40))
+end)
+
+AddButton(SettingsTab, "Blue Night Theme", "심해 블루 테마로 변경", function()
+    SetTheme(Color3.fromRGB(15, 20, 35), Color3.fromRGB(0, 170, 255), Color3.fromRGB(25, 30, 50), Color3.fromRGB(255, 255, 255))
+end)
+
+-- [리사이즈 핸들 및 로직]
+local ResizeHandle = Instance.new("ImageButton")
+ResizeHandle.Name = "ResizeHandle"
+ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
+ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
+ResizeHandle.BackgroundTransparency = 1
+ResizeHandle.Image = "rbxassetid://6034822430"
+ResizeHandle.ImageColor3 = Color3.fromRGB(100, 100, 100)
+ResizeHandle.ZIndex = 10
+ResizeHandle.Parent = MainFrame
+
+local isResizing = false
+ResizeHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then isResizing = true ResizeBorder.Thickness = 1.5 end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then isResizing = false ResizeBorder.Thickness = 0 end
+end)
+RunService.RenderStepped:Connect(function()
+    if isResizing then
+        local mousePos = UserInputService:GetMouseLocation()
+        local framePos = MainFrame.AbsolutePosition
+        local newWidth = math.max(MIN_SIZE.X, mousePos.X - framePos.X)
+        local newHeight = newWidth / ASPECT_RATIO
+        if newHeight < MIN_SIZE.Y then newHeight = MIN_SIZE.Y newWidth = newHeight * ASPECT_RATIO end
+        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+    end
+end)
+
+-- [드래그 및 공통 로직]
 local dragging, dragStart, startPos
 TitleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -369,9 +394,8 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and input.KeyCode == TOGGLE_KEY then
-        MainFrame.Visible = not MainFrame.Visible
-    end
+    if not gpe and input.KeyCode == TOGGLE_KEY then MainFrame.Visible = not MainFrame.Visible end
 end)
 
-Notify("KS HUB Loaded", "K 키로 토글 | 우측 하단 리사이즈")
+print(game:HttpGet('https://raw.githubusercontent.com/kgycoder/KSHub-loaded/refs/heads/main/text'))
+Notify("KS HUB Loaded", "K 키로 토글 | Settings에서 테마 설정")
